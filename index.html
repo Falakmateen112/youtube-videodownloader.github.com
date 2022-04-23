@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
+  <script src="https://use.fontawesome.com/1429dd3280.js"></script>
+  <title>ASS</title>
+</head>
+<script type='text/javascript'>
+	function initDownloadLinks (e) {
+		var value = document.getElementById("inputURL").value;
+		console.log(value);
+		var isVimeo = checkVimeo(value);
+		console.log(isVimeo)
+		if (isVimeo) {
+			isVimeo = isVimeo[isVimeo.length - 1];
+			getVimeoDetails(isVimeo);
+			return 0;
+		}
+		var result = (extractValue(value));
+		if (result === 0) {
+			return 0;
+		}
+		appendImages(result);
+		return false;
+	}
+	function initFunction () {
+		documentReady();
+	
+		document.getElementById("submitButton").onclick = function (e) {
+			initDownloadLinks(e);
+		}
+	}
+	function setDisplay (value) {
+		var arrayOfElements = document.getElementsByClassName('download-bt');
+		var lengthOfArray = arrayOfElements.length;
+	
+		for (var i = 0; i < lengthOfArray; i++) {
+			arrayOfElements[i].style.display = value;
+		}
+	}
+	
+		function appendVimeoVideos (hdLink, mdLink, sdLink) {
+			setDisplay("none");
+			document.getElementsByClassName('right-click-info')[0].style.display = "block";
+	
+			document.getElementById("hdrestext").textContent = "HD Image (640x480)";
+			document.getElementById("sdrestext").textContent = "SD Image (200x150)";
+			document.getElementById("normalrestext").textContent = "Normal Image (100x74)";
+			document.getElementById("imgListing").style.display = "block";
+			document.getElementById("bottomListing").style.display = "block";
+			document.getElementById("topListing").style.display = "block";
+			var element = document.getElementById("maxres")
+			element.setAttribute("src", hdLink);
+			element.style.display = "block";
+			element = document.getElementById("hqres");
+			element.setAttribute("src", sdLink);
+			element.style.display = "block";
+			element = document.getElementById("sdres");
+			element.setAttribute("src", mdLink);
+			document.getElementById("extraYTImg").style.display = "none";
+			document.getElementById("hdreslink").style.display = "none";
+			document.getElementById("sdreslink").style.display = "none";
+			document.getElementById("hqreslink").style.display = "none";
+		}
+	
+		function checkVimeo (data) {
+			var res = data.match(/https?:\/\/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)(?:$|\/|\?)/)
+			return res;
+		}
+	
+		function getVimeoDetails (link) {
+			var xmlhttp = new XMLHttpRequest();
+	
+			xmlhttp.onreadystatechange = function () {
+				if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+					if (xmlhttp.status == 200) {
+						var data = (JSON.parse(xmlhttp.responseText));
+						appendVimeoVideos(data[0].thumbnail_large, data[0].thumbnail_medium, data[0].thumbnail_small);
+					}
+					else if (xmlhttp.status == 400) {
+						alert("There is no video in the vimeo link you have given");
+					}
+					else {
+						alert("There is no video in the vimeo link you have given");
+					}
+				}
+			};
+	
+			xmlhttp.open("GET", 'https://vimeo.com/api/v2/video/' + link + '.json', true);
+			xmlhttp.send();
+	
+		}
+		function isMaxResAvailable (result) {
+			var img = new Image()
+			img.onload = function () {
+				if (this.width < 1280) {
+	
+					document.getElementById("hdreslink").style.display = "none";
+					document.getElementById("hdrestext").textContent = "High resolution not available";
+					isSDAvailalbe(result);
+				} else {
+					document.getElementById("hdrestext").textContent = "HD Image (1280x720)";
+				}
+			}
+			img.onerror = function () {
+				document.getElementById("sdrestext").textContent = "High resolution not available";
+				isSDAvailalbe(result);
+			}
+			img.src = "https://img.youtube.com/vi/" + result + "/maxresdefault.jpg";
+	
+		}
+		function isImageAvailable () {
+	
+			alert("Please check the youtube video link. It appears the video link is broken.")
+	
+	
+		}
+		function isSDAvailalbe (result) {
+			var img = new Image()
+			img.onload = function () {
+				if (this.width === 120 && this.height === 90) {
+					document.getElementById("sdrestext").textContent = "Standard Quality not available";
+					document.getElementById("sdreslink").style.display = "none";
+				} else {
+					document.getElementById("sdrestext").textContent = "SD Image (640x480)";
+				}
+			}
+			img.onerror = function () {
+				document.getElementById("sdrestext").textContent = "Standard Quality not available";
+	
+			}
+			img.src = "https://img.youtube.com/vi/" + result + "/sddefault.jpg";
+	
+		}
+	
+		function appendImages (result) {
+			//document.getElementsByClassName("download-btn").style.display = "block";
+			setDisplay("block");
+	
+			document.getElementsByClassName('right-click-info')[0].style.display = "none";
+	
+			document.getElementById("hdreslink").style.display = "inline";
+			document.getElementById("sdreslink").style.display = "inline";
+			document.getElementById("hqreslink").style.display = "inline";
+			document.getElementById("inputURL").value = "https://youtube.com/watch?v=" + result;
+			document.getElementById("imgListing").style.display = "block";
+			document.getElementById("bottomListing").style.display = "block";
+			document.getElementById("topListing").style.display = "block";
+			document.getElementById("hdrestext").textContent = "HD Image (1280x720)";
+			document.getElementById("sdrestext").textContent = "SD Image (640x480)";
+			document.getElementById("normalrestext").textContent = "Normal Image (480x360)";
+			document.getElementById("maxres").setAttribute("src", "https://img.youtube.com/vi/" + result + "/maxresdefault.jpg");//.removeClass("disabled");
+			document.getElementById("sdres").setAttribute("src", "https://img.youtube.com/vi/" + result + "/sddefault.jpg");
+			document.getElementById("hqres").setAttribute("src", "https://i3.ytimg.com/vi/" + result + "/hqdefault.jpg");
+			document.getElementById("mqres").setAttribute("src", "https://img.youtube.com/vi/" + result + "/mqdefault.jpg");
+			document.getElementById("defres").setAttribute("src", "https://img.youtube.com/vi/" + result + "/default.jpg");
+	
+		document.getElementById("hdreslink").href = "https://img.youtube.com/vi/" + result + "/maxresdefault.jpg";
+			document.getElementById("sdreslink").href = "https://img.youtube.com/vi/" + result + "/sddefault.jpg";
+			document.getElementById("hqreslink").href = "https://i3.ytimg.com/vi/" + result + "/hqdefault.jpg";
+			document.getElementById("mqreslink").href = "https://img.youtube.com/vi/" + result + "/mqdefault.jpg";
+		document.getElementById("defreslink").href = "https://img.youtube.com/vi/" + result + "/default.jpg";
+			isMaxResAvailable(result);
+	
+			document.getElementById("extraYTImg").style.display = "block";
+		}
+	
+		function extractValue (data) {
+			console.log(data)
+			var res = data.match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/)
+			if (res == undefined) {
+				alert("Please check the URL you have entered");
+				return 0;
+			}
+			return res[1];
+		}
+	
+	
+		function showAlertInfo (info) {
+			var div = document.createElement("div");
+			div.setAttribute("class", "alert alert-info alert-dismissable fade in " + info);
+			div.setAttribute("id", "alertBanner");
+			var aTag = document.createElement("a");
+			a.setAttribute(href, "#");
+			a.setAttribute("class", "close");
+			a.setAttribute("aria-label", "close");
+			a.setAttribute("text", "x");
+			a.setAttribute("data-dismiss", "alert");
+			div.appendChild(a);
+			div.appendChild(html);
+			document.getElementById("images").appendChild(div);
+		}
+		function documentReady () {
+	
+			(function () {
+				function getQueryStringValue (key) {
+					return decodeURIComponent(window.location.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
+				}
+				var id = getQueryStringValue('id');
+				var type = getQueryStringValue("type");
+				if (type == "vimeo") {
+					document.getElementById("inputURL").value = "https://vimeo.com/" + id
+					var vimId = checkVimeo("https://www.vimeo.com/" + id);
+					vimId = vimId[vimId.length - 1];
+	
+					getVimeoDetails(vimId);
+					return 0;
+				}
+				if (id !== "") {
+					appendImages(id);
+				}
+	
+			}());
+		};
+		initFunction();
+	</script>
+
+<style>
+  .head_box {
+    background-color: #135ca8;
+
+  }
+
+  .rated-section {
+    width: 100%;
+    height: 57vh;
+    background-color: #165ba9;
+    margin-top: 35vh;
+  }
+
+  .accreditation-section {
+    background-color: white;
+    height: 48rem;
+  }
+
+  .accgp_section {
+    background-color: #ebebeb;
+    height: 25rem;
+  }
+
+  .footer-section {
+    background-color: #ffffff;
+    height: 25rem;
+  }
+
+  .copyright-section {
+    background-color: #155baa;
+    height: 5rem;
+  }
+</style>
+
+<body>
+  
+  <!-- ===========header box_section=============== -->
+  <div class="head_box">
+    <div class="container">
+      <div class="icons">
+        <a href=""><img src="svg/Icon awesome-facebook-f.svg"></a>
+        <a href=""><img src="svg/Icon awesome-instagram.svg"></a>
+        <a href=""><img src="svg/Icon awesome-youtube.svg"></a>
+        <a href=""><img src="svg/Icon awesome-twitter.svg"></a>
+      </div>
+
+      <img style="height: 3.5rem;width: 3,5rem;margin-left: 48rem;"  src="images/speedometer.png"><h2>Faster VIDEo Downloader</h2>
+      
+        
+
+      </div>
+    </div>
+  <!-- ==========header section-------------- -->
+
+  <div class="header_section">
+    <div class="bar">
+
+      <nav class="navbar navbar-expand-lg navbar-light " style="background-color: #10a2dc;">
+        <a class="navbar-brand" href="#">
+          <img style=" margin-left: 2rem;height: 3.2rem;width: 3.3rem; " src="images/camera-reels.svg">
+        </a>
+        <h1 style="color: white;margin-top: 7px;">YouTube VIDEo Downloader</h1>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse text-white" id="navbarSupportedContent">
+          <ul style="margin-left: 22rem;font-size: 1.3rem;" class="navbar-nav ">
+            
+            <li class="nav-item">
+              <a class="nav-link" style=" color: white;font-size: 1.5rem; " href="#"><p>YouTube Video Downloader</p><span class="sr-only">(current)</span></a>
+            </li>
+            
+
+            <li class="nav-item">
+              <a class="nav-link" style=" color: white;font-size: 1.5rem; " href="#"><p>Instagram Video Downloader</p><span class="sr-only">(current)</span></a>
+            </li>
+            
+            <li class="nav-item">
+              <a class="nav-link" style=" color: white;font-size: 1.5rem; " href="#"><p>Tiktok Video Downloader</p><span class="sr-only">(current)</span></a>
+            </li>
+          </ul>
+          
+          </div>
+        </nav>
+      </div>
+    </div>
+
+
+  <!-- =========body img section====================== -->
+  
+  <div class='bodyContainer'>
+    <header style='margin-top: 40px; margin-bottom: 20px;font-size: medium;'>
+    <p style='text-align: center;'>Youtube Downloader Supports All Youtube Videos Including <b>4K, 1080p, HD, HQ</b>, etc.</p>
+    </header>
+    
+    <div class='container'>
+    <table style='width: 100%;'>
+    
+    <form class='downloadForm' onsubmit="event.preventDefault(); initDownloadLinks();">
+    <tr><td><input style="font-size: large;margin: auto;margin-top: 10rem;" aria-label='input URL ' class='form-control col-lg-6' id='inputURL' placeholder='Enter the youtube URL here' type='text'/></td></tr>
+
+  <tr><td><input type='submit' class='btn btn-default' id='submitButton' type='button' style='background: #345a85;color: white; font-weight: bold;background:#4e79a7 ;font-weight: bold;margin-left: 44rem;font-size: 1.5rem;margin: top;margin-top: 2rem;' value='Download YouTube VIDEo' /></td></tr>
+    </form>
+    </table>
+    <p style='text-align: center;margin:0 auto;max-width: 1000px;padding-top: 60px;padding-bottom: 30px;font-size: 16px;'>Youtube VIDEo Downloader.co is a Free online tool, with the help of which you can download <b>Youtube Video </b> in Different Sizes and Qualities. Just Paste your Youtube Video Link in the Input Box Given Below and press "Download Youtube video ", and That's it.</p>
+    
+    <div style="width:100%; margin-top: 20px;"> </div>
+    <div id="imgListing"class='imgListing' style="width:100%;left:0px">
+    <div id='topListing' style="display: none; text-align: -webkit-center;">
+    <h5 class="right-click-info">Right Click and click on 'Save Image As..' to save the images.</h5>
+    <h5 style="font-size: 2rem;" id='hdrestext'>HD Image (1280x720)</h5>
+    <a style="    font-size: xx-large;" id="hdreslink" class="download-btn">Download HD Youtube Video </a>
+    <img style="width: 260px;height: 165px;display: flex;" id="maxres" src="" loading="eager" />
+    <h5 style="font-size: 2rem;" id='sdrestext'>SD Image (640x480)</h5>
+    <a style="    font-size: xx-large;" id="sdreslink" class="download-btn">Download SD Youtube Video</a>
+    <img style="width: 245px;height: 140px;display: flex;" id="sdres" src="" loading="auto" />
+    </div>
+    
+    <div id='bottomListing' style="display: none;text-align: -webkit-center;">
+    <h5 style="font-size: 2rem;" id='normalrestext'>Normal Image (480x360)</h5>
+    <a style="    font-size: x-large;" id="hqreslink" class="download-btn">Download YouTube Video  (480x360)</a>
+    <img style="width: 225px;height: 130px;display: flex;"id="hqres" src="" loading="lazy" />
+    <div id='extraYTImg'>
+    <h5 style="font-size: 2rem;" >Normal Image (320x180)</h5>
+    <a style="    font-size: x-large;"  id="mqreslink" class="download-btn"> Download YouTube Video (320x180)</a>
+    <img style="width: 215px;height: 120px;display: flex;"id="mqres" src="" loading="lazy" />
+    <h5 style="font-size: 2rem;" >Normal Image (120x90)</h5>
+    <a style="    font-size: x-large;" id="defreslink" class="download-btn">Download YouTube Video  (120x90)</a>
+    <img style="width: 150px;height: 100px;display: flex;"id="defres" src="" loading="lazy" />
+    </div>
+    </div>
+    
+    
+    </div>
+
+  <!-- ============= about section============== -->
+  
+  <!-- ============= about us============== -->
+  <div class="about-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 col-6">
+          <h1>Wellcome to<br><span style="color: #2b5c99;">Youtube</span>-<span style="color: #599ebd;">VIDEo Downloader</span></h1>
+          <p style="color: gray;">Find and paste the URL of the video in the input field<br>
+            Click the green “Download” button to save it, or choose the format you like (MP3, MP4, WEBM, 3GP). <br>
+            Then click on the gray arrow on the right of the Download button in order to choose the preferred format. <br>
+            Now you can enjoy the videos and playlists offline! Works in Chrome, Firefox, or any other browser.<br>
+            the fastest way of Youtube video download in mp4, mp3, SQ, HD, Full HD quality, plus a wide range of formats for free...<br> 
+            <br>
+            Just add “ss” to the video URL to launch the Youtube video downloader process.</p>
+          <div class="box3">
+            <button type="button" class="btn buttn btn-outline-dark"><span>Watch Video</span><i
+                style="margin-left: 0.6rem;font-size: 1rem;" class="fa fa-play" aria-hidden="true"></i></button>
+            <br>
+            
+          </div>
+        </div>
+        <div class="col-md-6 col-6">
+          <img class="img-fluid" src="svg/Layer 2.svg">
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ============= rated============== -->
+ 
+  <!-- =============Accreditation============== -->
+  <div class=" accreditation-section">
+    <div class="container">
+      <h1>Best website to download video from Youtube online</h1>
+      <p>Youtube VIDEo Downloader.com is the fastest website to help you download Youtube video online. With just a few simple steps, you can download any Youtube video to your device in many different formats such as: MP4, Webm, m4a, 3gp and especially Youtube VIDEo Downloader allows you to convert Youtube video to mp3 with sound quality best bar. Everything is simple and completely free.<br></p>
+      <div class="row">
+        <div class="col-md-2">
+          <img class="img-fluid" src="svg/icon_iso_01.jpg" alt="">
+        </div>
+        <div class="col-md-2">
+          <img class="img-fluid" src="svg/icon_iso_01.jpg" alt="">
+        </div>
+        <div class="col-md-2">
+          <img class="img-fluid" src="svg/icon_iso_01.jpg" alt="">
+        </div>
+        <div class="col-md-2">
+          <img class="img-fluid" src="svg/icon_iso_01.jpg" alt="">
+        </div>
+        <div class="col-md-2">
+          <img class="img-fluid" src="svg/icon_iso_01.jpg" alt="">
+        </div>
+        <div class="col-md-2">
+          <img class="img-fluid" src="svg/icon_iso_01.jpg" alt="">
+        </div>
+
+
+      </div>
+      <div class="ios-button">
+        <a href="#" class="btn btn-primary"> <img src="svg/icons8-globe-50.png" alt=""><span>Other ISO
+            Standards</span></a>
+
+      </div>
+
+
+
+    </div>
+  </div>
+
+  <!-----=============Acc GP LOGO =============== -->
+  <div class="accgp_section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 col-6">
+          <div class="you">
+            <h2>BECOME AN APPROVED PARTNER</h2>
+            <p>Email: sales@acs-gp.com</p>
+            <img class="img-fluid" src="svg/logocopy.PNG">
+          </div>
+        </div>
+
+        <div class="col-md-6 col-6">
+
+          <div class="gp">
+            <h2>BECOME AN APPROVED PARTNER</h2>
+            <p>Email: sales@acs-gp.com</p>
+            <img class="img-fluid" src="svg/logocopy.PNG">
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-----=============footer-section=============== -->
+  <div class="footer-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="ass">
+            <img class="img-fluid" src="svg/LOGO.svg">
+            <a href=""><p>Home</p>
+              <a href="">  <p>Terms & Conditions</p>
+                <a href="">  <p>Contect</p>
+                  <a href="">  <p>Blog</p>
+            </a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="sff">
+            <h3>Contect</h3>
+            <p>+92 123 675 458 58</p>
+            <h4>Call/acs-gp .com</h4>
+            <div class="footer-icons">
+              <a href=""><img src="svg/Icon awesome-facebook-f.svg"></a>
+              <a href=""><img src="svg/Icon awesome-instagram.svg"></a>
+              <a href=""><img src="svg/Icon awesome-youtube.svg"></a>
+              <a href=""><img src="svg/Icon awesome-twitter.svg"></a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="mpp">
+            <h2>Address</h2>
+            <p>For More ISO Standard and<br>
+              Certification. Kindly fill<br>
+              following document, we<br>
+              can manage your<br></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-----=============Copyright-section=============== -->
+  <div class="copyright-section">
+    <div class="container">
+      <div class="copy">
+        <h2>© 2014 - 2018 ACS - GP All right reserved</h2>
+
+
+      </div>
+
+    </div>
+
+
+
+
+
+  </div>
+
+  
+
+</body>
+
+</html>
